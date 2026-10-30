@@ -1,0 +1,21 @@
+@model Multiverse.Web.ViewModels.ClientFormViewModel
+@{ ViewData["Title"] = "New Client"; }
+
+<div class="erp-page-header">
+    <div>
+        <h2>New client</h2>
+        <p>Register a new client in the system</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-primary">Back to list</a>
+</div>
+
+<div class="erp-card">
+    <form asp-action="Create" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <partial name="_Form" model="Model" />
+        <div class="d-flex gap-2 mt-3 justify-content-end">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a asp-action="Index" class="btn btn-danger">Cancel</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,160 @@
+@model Multiverse.Web.ViewModels.ClientListViewModel
+@using Multiverse.Web.Models
+
+<div class="erp-table-wrap">
+    <table class="table table-hover erp-client-table">
+        <thead>
+            <tr>
+                <th style="width:44px;" class="text-center">
+                    <input type="checkbox" id="selectAllClients" class="erp-check" aria-label="Select all" />
+                </th>
+                <th style="width:44px;" class="text-center"></th>
+                <th>Client</th>
+                <th>Contact</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Clients.Count == 0)
+        {
+            <tr>
+                <td colspan="8">
+                    <div class="erp-empty">
+                        <div class="erp-card-icon" style="--tone:#48dbfb"><svg><use href="#i-users"/></svg></div>
+                        <strong>No clients found</strong>
+                        <p>@(Model.AnyFilter ? "No matches for the current filters." : "Add your first client to get started.")</p>
+                        @if (!Model.AnyFilter)
+                        {
+                            <a asp-action="Create" class="btn btn-primary">New client</a>
+                        }
+                    </div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var c in Model.Clients)
+            {
+                var initials = string.IsNullOrWhiteSpace(c.FullName)
+                    ? "?"
+                    : string.Concat(c.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Take(2).Select(p => char.ToUpper(p[0])));
+                var isInactive = c.Status == ClientStatus.Inactive;
+
+                <tr data-client-id="@c.Id" data-status="@c.Status">
+                    <td class="text-center">
+                        <input type="checkbox" class="erp-check js-row-check" value="@c.Id"
+                               aria-label="Select @c.FullName" />
+                    </td>
+                    <td class="text-center">
+                        <span class="erp-avatar erp-avatar-sm" aria-hidden="true">@initials</span>
+                    </td>
+                   <td>
+                        <a asp-action="Details" asp-route-id="@c.Id" class="erp-client-name">@c.FullName</a>
+                        <small class="text-muted d-block">@c.ClientType · @c.LeadStatus</small>
+                    </td>
+                    <td>
+                        <div class="erp-client-contact">@c.Email</div>
+                        <small class="text-muted erp-num">@c.Phone</small>
+                    </td>
+                    <td>
+                        <div>@c.City</div>
+                        <small class="text-muted">@c.State — @c.PinCode</small>
+                    </td>
+                    <td>
+                        <label class="erp-switch" title="Toggle status">
+                            <input type="checkbox" class="js-toggle-status"
+                                   data-id="@c.Id"
+                                   checked="@(!isInactive)" />
+                            <span class="erp-switch-track"><span class="erp-switch-thumb"></span></span>
+                            <span class="erp-switch-label">@c.Status</span>
+                        </label>
+                    </td>
+                    <td>
+                        <span class="erp-num">@c.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</span>
+                    </td>
+                    <td class="text-end">
+                        <div class="erp-actions">
+                            <a asp-action="Details" asp-route-id="@c.Id"
+                               class="erp-action-btn" title="View" aria-label="View">
+                                <svg><use href="#i-eye"/></svg>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@c.Id"
+                               class="erp-action-btn" title="Edit" aria-label="Edit">
+                                <svg><use href="#i-pencil"/></svg>
+                            </a>
+                            <button type="button"
+                                    class="erp-action-btn erp-action-danger js-delete-client"
+                                    data-id="@c.Id"
+                                    data-name="@c.FullName"
+                                    data-inactive="@(isInactive ? "true" : "false")"
+                                    title="@(isInactive ? "Delete client" : "Deactivate first to delete")"
+                                    aria-label="Delete"
+                                    disabled="@(!isInactive)">
+                                <svg><use href="#i-trash"/></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="erp-pager-bar">
+    <div class="erp-pager-meta">
+        @if (Model.FilteredTotal == 0)
+        {
+            <span>No results</span>
+        }
+        else
+        {
+            <span>
+                Showing <strong>@Model.FirstOnPage–@Model.LastOnPage</strong>
+                of <strong>@Model.FilteredTotal</strong>
+                @(Model.AnyFilter ? "matching" : "")
+            </span>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        var start = Math.Max(1, Model.Page - 2);
+        var end   = Math.Min(Model.TotalPages, start + 4);
+        start     = Math.Max(1, end - 4);
+
+        <nav class="erp-pager" aria-label="Pagination">
+            <button type="button" class="erp-page-btn js-page" data-page="1"
+                    disabled="@(!Model.HasPrev)" aria-label="First">
+                <svg><use href="#i-chevrons"/></svg>
+            </button>
+            <button type="button" class="erp-page-btn js-page" data-page="@(Model.Page - 1)"
+                    disabled="@(!Model.HasPrev)" aria-label="Previous">
+                <svg style="transform:rotate(180deg)"><use href="#i-chevrons"/></svg>
+            </button>
+
+            @for (int p = start; p <= end; p++)
+            {
+                <button type="button"
+                        class="erp-page-btn js-page @(p == Model.Page ? "is-current" : "")"
+                        data-page="@p"
+                        aria-current="@(p == Model.Page ? "page" : null)">
+                    @p
+                </button>
+            }
+
+            <button type="button" class="erp-page-btn js-page" data-page="@(Model.Page + 1)"
+                    disabled="@(!Model.HasNext)" aria-label="Next">
+                <svg><use href="#i-chevrons"/></svg>
+            </button>
+            <button type="button" class="erp-page-btn js-page" data-page="@Model.TotalPages"
+                    disabled="@(!Model.HasNext)" aria-label="Last">
+                <svg style="transform:rotate(180deg)"><use href="#i-chevrons"/></svg>
+            </button>
+        </nav>
+    }
+</div>

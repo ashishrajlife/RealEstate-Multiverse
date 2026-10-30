@@ -1,0 +1,183 @@
+@model Multiverse.Web.ViewModels.ClientFormViewModel
+@using Multiverse.Web.Models
+
+<div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+@* ================================================================
+   SECTION 1 — Identity & Contact (always open)
+   ================================================================ *@
+<h4 class="erp-section-title">Identity &amp; contact</h4>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="FullName" class="form-label">Full name</label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Email" class="form-label">Email</label>
+        <input asp-for="Email" type="email" class="form-control" />
+        <span asp-validation-for="Email" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Phone" class="form-label">Mobile (+91)</label>
+        <input asp-for="Phone" class="form-control" placeholder="+919876543210" />
+        <span asp-validation-for="Phone" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="AadhaarNumber" class="form-label">Aadhaar (optional)</label>
+        <input asp-for="AadhaarNumber" class="form-control" maxlength="12" />
+        <span asp-validation-for="AadhaarNumber" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="PanNumber" class="form-label">PAN (optional)</label>
+        <input asp-for="PanNumber" class="form-control" maxlength="10" style="text-transform:uppercase" />
+        <span asp-validation-for="PanNumber" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="AddressLine" class="form-label">Address</label>
+        <input asp-for="AddressLine" class="form-control" />
+        <span asp-validation-for="AddressLine" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="City" class="form-label">City</label>
+        <input asp-for="City" class="form-control" />
+        <span asp-validation-for="City" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="PinCode" class="form-label">PIN code</label>
+        <input asp-for="PinCode" class="form-control" maxlength="6" />
+        <span asp-validation-for="PinCode" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="State" class="form-label">State</label>
+        <select asp-for="State" asp-items="Html.GetEnumSelectList<IndianState>()" class="form-select"></select>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Status" class="form-label">Status</label>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<ClientStatus>()" class="form-select"></select>
+    </div>
+</div>
+
+@* ================================================================
+   SECTION 2 — Client profile
+   ================================================================ *@
+<h4 class="erp-section-title" style="margin-top:1.5rem;">Client profile</h4>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="ClientType" class="form-label">Client type</label>
+        <select asp-for="ClientType" asp-items="Html.GetEnumSelectList<ClientType>()" class="form-select"></select>
+        <span asp-validation-for="ClientType" class="field-validation-error"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Occupation" class="form-label">Occupation</label>
+        <input asp-for="Occupation" class="form-control" placeholder="Salaried – IT, Business, Doctor, …" />
+        <span asp-validation-for="Occupation" class="field-validation-error"></span>
+    </div>
+</div>
+
+@* ================================================================
+   SECTION 3 — Preferences (collapsible, only meaningful for Buyer/Tenant/Investor)
+   ================================================================ *@
+<details open style="margin-top:1.5rem;">
+    <summary class="erp-section-title" style="cursor:pointer;">
+        Preferences
+        <small class="text-muted" style="font-weight:400;font-size:.78rem;">
+            (fill for Buyer / Tenant / Investor)
+        </small>
+    </summary>
+
+    <div class="row g-3" style="margin-top:.5rem;">
+        <div class="col-md-4">
+            <label asp-for="InterestedIn" class="form-label">Interested in</label>
+            <select asp-for="InterestedIn" asp-items="Html.GetEnumSelectList<InterestKind>()" class="form-select">
+                <option value="">—</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="PreferredPropertyType" class="form-label">Property type</label>
+            <select asp-for="PreferredPropertyType" asp-items="Html.GetEnumSelectList<PropertyKind>()" class="form-select">
+                <option value="">—</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="BHK" class="form-label">BHK</label>
+            <select asp-for="BHK" asp-items="Html.GetEnumSelectList<BhkPreference>()" class="form-select">
+                <option value="">—</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="PreferredLocation" class="form-label">Preferred location</label>
+            <input asp-for="PreferredLocation" class="form-control" placeholder="Shankar Nagar, Raipur" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="MinBudget" class="form-label">Min budget (₹)</label>
+            <input asp-for="MinBudget" type="number" min="0" step="1000" class="form-control" placeholder="2000000" />
+            <span asp-validation-for="MinBudget" class="field-validation-error"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="MaxBudget" class="form-label">Max budget (₹)</label>
+            <input asp-for="MaxBudget" type="number" min="0" step="1000" class="form-control" placeholder="4000000" />
+            <span asp-validation-for="MaxBudget" class="field-validation-error"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="PreferredArea" class="form-label">Preferred area</label>
+            <input asp-for="PreferredArea" class="form-control" placeholder="1,000–1,500 sq.ft." />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Possession" class="form-label">Possession preference</label>
+            <select asp-for="Possession" asp-items="Html.GetEnumSelectList<PossessionPreference>()" class="form-select">
+                <option value="">—</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="LoanRequired" class="form-label">Loan required</label>
+            <select asp-for="LoanRequired" asp-items="Html.GetEnumSelectList<LoanPreference>()" class="form-select">
+                <option value="">—</option>
+            </select>
+        </div>
+    </div>
+</details>
+
+@* ================================================================
+   SECTION 4 — Lead tracking (collapsible)
+   ================================================================ *@
+<details open style="margin-top:1.5rem;">
+    <summary class="erp-section-title" style="cursor:pointer;">Lead tracking</summary>
+
+    <div class="row g-3" style="margin-top:.5rem;">
+        <div class="col-md-4">
+            <label asp-for="LeadSource" class="form-label">Lead source</label>
+            <select asp-for="LeadSource" asp-items="Html.GetEnumSelectList<LeadSource>()" class="form-select">
+                <option value="">—</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="AssignedEmployeeId" class="form-label">Assigned to</label>
+            <select asp-for="AssignedEmployeeId" class="form-select">
+                <option value="">— Unassigned —</option>
+                @foreach (var e in Model.AssignableEmployees)
+                {
+                    <option value="@e.Id">@e.FullName (@e.RoleLabel)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="NextFollowUpAt" class="form-label">Next follow-up</label>
+            <input asp-for="NextFollowUpAt" type="datetime-local" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="LeadStatus" class="form-label">Lead status</label>
+            <select asp-for="LeadStatus" asp-items="Html.GetEnumSelectList<LeadStatus>()" class="form-select"></select>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Priority" class="form-label">Priority</label>
+            <select asp-for="Priority" asp-items="Html.GetEnumSelectList<LeadPriority>()" class="form-select"></select>
+        </div>
+        <div class="col-12">
+            <label asp-for="InitialNotes" class="form-label">Notes / remarks</label>
+            <textarea asp-for="InitialNotes" class="form-control" rows="3"
+                      placeholder="Initial requirement, budget context, prior conversations…"></textarea>
+            <span asp-validation-for="InitialNotes" class="field-validation-error"></span>
+        </div>
+    </div>
+</details>

@@ -1,0 +1,36 @@
+@{ ViewData["Title"] = "Admin Dashboard"; }
+<div class="erp-page-header">
+    <div><h2>Admin Console</h2><p>Full system overview</p></div>
+</div>
+<div class="erp-grid erp-grid-kpi">
+    <a class="erp-card tone" style="--tone:#48dbfb">
+        <div class="erp-card-icon" style="--tone:#48dbfb"><svg><use href="#i-users"/></svg></div>
+        <div class="erp-card-label">Users</div>
+        <div class="erp-card-value">@(ViewData["TotalClients"] ?? 0)</div>
+        <div class="erp-card-delta up">@(ViewData["ActiveClients"] ?? 0) active</div>
+    </a>
+    <a class="erp-card tone" style="--tone:#feca57">
+        <div class="erp-card-icon" style="--tone:#feca57"><svg><use href="#i-building"/></svg></div>
+        <div class="erp-card-label">Properties</div>
+        <div class="erp-card-value">0</div>
+        <div class="erp-card-delta">Add later</div>
+    </a>
+    <a class="erp-card tone" style="--tone:#7ee0a5">
+        <div class="erp-card-icon" style="--tone:#7ee0a5"><svg><use href="#i-wallet"/></svg></div>
+        <div class="erp-card-label">Revenue</div>
+        <div class="erp-card-value">$0</div>
+        <div class="erp-card-delta">No data</div>
+    </a>
+    <a class="erp-card tone" style="--tone:#a29bfe">
+        <div class="erp-card-icon" style="--tone:#a29bfe"><svg><use href="#i-clipboard"/></svg></div>
+        <div class="erp-card-label">Approvals</div>
+        <div class="erp-card-value">0</div>
+        <div class="erp-card-delta">Pending</div>
+    </a>
+    <a asp-controller="Clients" asp-action="Index" class="erp-card tone is-link" style="--tone:#7ee0a5">
+    <div class="erp-card-icon" style="--tone:#7ee0a5"><svg><use href="#i-users"/></svg></div>
+    <div class="erp-card-label">Clients</div>
+    <div class="erp-card-value">@(ViewData["TotalClients"] ?? 0)</div>
+    <div class="erp-card-delta up">Open directory →</div>
+</a>
+</div>

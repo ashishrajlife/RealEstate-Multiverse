@@ -1,0 +1,315 @@
+@model Multiverse.Web.Models.Client
+@using Multiverse.Web.Models
+@{
+    ViewData["Title"] = "Client";
+    var docs = ViewData["Documents"] as IReadOnlyList<ClientDocument> ?? Array.Empty<ClientDocument>();
+    var isInactive = Model.Status == ClientStatus.Inactive;
+
+    string Chip(ClientStatus s) => s switch
+    {
+        ClientStatus.Active   => "success",
+        ClientStatus.Inactive => "warning",
+        _                     => "danger"
+    };
+
+    var initials = string.IsNullOrWhiteSpace(Model.FullName)
+        ? "?"
+        : string.Concat(Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2).Select(p => char.ToUpper(p[0])));
+}
+
+<div class="erp-page-header">
+    <div class="d-flex align-items-center gap-3">
+        <span class="erp-avatar erp-avatar-lg" aria-hidden="true">@initials</span>
+        <div>
+            <h2 style="margin:0;">@Model.FullName</h2>
+            <p style="margin:.15rem 0 0;">
+                @Model.Email · <span class="erp-num">@Model.Phone</span>
+                <span class="erp-chip @Chip(Model.Status)" style="margin-left:.5rem;">@Model.Status</span>
+            </p>
+        </div>
+    </div>
+    <div class="erp-page-actions">
+        
+        
+        <a asp-action="Index" class="btn btn-outline-primary">Back to list</a>
+        
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+            <svg style="width:16px;height:16px"><use href="#i-pencil"/></svg>
+            Edit / Add Dcouments
+        </a>
+
+        @* Delete is DISABLED while active. The wrapper hosts a custom tooltip that
+           also fires for disabled elements (native title doesn't always show on disabled). *@
+        <span class="erp-tooltip-wrap"
+              data-tooltip="@(isInactive ? "Permanently delete this client and all documents" : "Deactivate the client first to delete")">
+            <button type="button"
+                    class="btn btn-outline-danger js-delete-client"
+                    data-id="@Model.Id"
+                    data-name="@Model.FullName"
+                    data-inactive="@(isInactive ? "true" : "false")"
+                    disabled="@(!isInactive)">
+                <svg style="width:16px;height:16px"><use href="#i-trash"/></svg>
+                Delete
+            </button>
+        </span>
+    </div>
+</div>
+
+
+@* ===== Profile + Preferences ===== *@
+<div class="erp-grid erp-grid-split" style="margin-top:1rem;">
+    <div class="erp-card tone" style="--tone:#a29bfe">
+        <h3 class="erp-card-title">Client profile &amp; preferences</h3>
+        <dl class="row mb-0">
+            <dt class="col-sm-5">Client type</dt>       <dd class="col-sm-7">@Model.ClientType</dd>
+            <dt class="col-sm-5">Occupation</dt>        <dd class="col-sm-7">@(Model.Occupation ?? "—")</dd>
+            <dt class="col-sm-5">Interested in</dt>     <dd class="col-sm-7">@(Model.InterestedIn?.ToString() ?? "—")</dd>
+            <dt class="col-sm-5">Property type</dt>     <dd class="col-sm-7">@(Model.PreferredPropertyType?.ToString() ?? "—")</dd>
+            <dt class="col-sm-5">BHK</dt>               <dd class="col-sm-7">@(Model.BHK?.ToString() ?? "—")</dd>
+            <dt class="col-sm-5">Preferred location</dt><dd class="col-sm-7">@(Model.PreferredLocation ?? "—")</dd>
+            <dt class="col-sm-5">Budget</dt>
+            <dd class="col-sm-7 erp-num">
+                @if (Model.MinBudget is null && Model.MaxBudget is null) { @("—") }
+                else
+                {
+                    @($"₹{(Model.MinBudget ?? 0):N0} — ₹{(Model.MaxBudget ?? 0):N0}")
+                }
+            </dd>
+            <dt class="col-sm-5">Preferred area</dt>    <dd class="col-sm-7">@(Model.PreferredArea ?? "—")</dd>
+            <dt class="col-sm-5">Possession</dt>        <dd class="col-sm-7">@(Model.Possession?.ToString() ?? "—")</dd>
+            <dt class="col-sm-5">Loan required</dt>     <dd class="col-sm-7">@(Model.LoanRequired?.ToString() ?? "—")</dd>
+        </dl>
+    </div>
+
+    <div class="erp-card tone" style="--tone:#feca57">
+        <h3 class="erp-card-title">Lead &amp; assignment</h3>
+        <dl class="row mb-0">
+            <dt class="col-sm-5">Lead source</dt>       <dd class="col-sm-7">@(Model.LeadSource?.ToString() ?? "—")</dd>
+            <dt class="col-sm-5">Assigned to</dt>       <dd class="col-sm-7">@(Model.AssignedEmployee?.FullName ?? "Unassigned")</dd>
+            <dt class="col-sm-5">Lead status</dt>
+            <dd class="col-sm-7">
+                <span class="erp-chip @(Model.LeadStatus switch {
+                    LeadStatus.New => "info",
+                    LeadStatus.Contacted => "warning",
+                    LeadStatus.Qualified => "info",
+                    LeadStatus.Converted => "success",
+                    _ => "danger" })">@Model.LeadStatus</span>
+            </dd>
+            <dt class="col-sm-5">Priority</dt>
+            <dd class="col-sm-7">
+                <span class="erp-chip @(Model.Priority switch {
+                    LeadPriority.Hot => "danger",
+                    LeadPriority.Warm => "warning",
+                    _ => "" })">@Model.Priority</span>
+            </dd>
+            <dt class="col-sm-5">Next follow-up</dt>
+            <dd class="col-sm-7 erp-num">@(Model.NextFollowUpAt?.ToLocalTime().ToString("dd MMM yyyy, HH:mm") ?? "—")</dd>
+        </dl>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.InitialNotes))
+{
+    <div class="erp-card" style="margin-top:1rem;">
+        <h3 class="erp-card-title">Notes</h3>
+        <p class="mb-0" style="white-space:pre-wrap;">@Model.InitialNotes</p>
+    </div>
+}
+
+@* ===== Top info strip: quick facts ===== *@
+<div class="erp-grid erp-grid-kpi" style="margin-bottom:1rem;">
+    <div class="erp-card tone" style="--tone:#48dbfb">
+        <div class="erp-card-label">Phone</div>
+        <div class="erp-card-value erp-num" style="font-size:1.15rem;">@Model.Phone</div>
+    </div>
+    <div class="erp-card tone" style="--tone:#a29bfe">
+        <div class="erp-card-label">Aadhaar</div>
+        <div class="erp-card-value erp-num" style="font-size:1.15rem;">@(Model.AadhaarNumber ?? "—")</div>
+    </div>
+    <div class="erp-card tone" style="--tone:#feca57">
+        <div class="erp-card-label">PAN</div>
+        <div class="erp-card-value erp-num" style="font-size:1.15rem;">@(Model.PanNumber ?? "—")</div>
+    </div>
+    <div class="erp-card tone" style="--tone:#7ee0a5">
+        <div class="erp-card-label">Documents</div>
+        <div class="erp-card-value" style="font-size:1.15rem;">@docs.Count</div>
+    </div>
+</div>
+
+<div class="erp-grid erp-grid-split">
+    <div class="erp-card tone" style="--tone:#48dbfb">
+        <h3 class="erp-card-title">Contact &amp; identity</h3>
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+
+            <dt class="col-sm-4">Phone</dt>
+            <dd class="col-sm-8 erp-num">@Model.Phone</dd>
+
+            <dt class="col-sm-4">Aadhaar</dt>
+            <dd class="col-sm-8 erp-num">@(Model.AadhaarNumber ?? "—")</dd>
+
+            <dt class="col-sm-4">PAN</dt>
+            <dd class="col-sm-8 erp-num">@(Model.PanNumber ?? "—")</dd>
+
+            <dt class="col-sm-4">Status</dt>
+            <dd class="col-sm-8"><span class="erp-chip @Chip(Model.Status)">@Model.Status</span></dd>
+
+            <dt class="col-sm-4">Created</dt>
+            <dd class="col-sm-8 erp-num">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd>
+
+            @if (Model.UpdatedAt is DateTime upd)
+            {
+                <dt class="col-sm-4">Last updated</dt>
+                <dd class="col-sm-8 erp-num">@upd.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd>
+            }
+        </dl>
+    </div>
+
+    <div class="erp-card tone" style="--tone:#feca57">
+        <h3 class="erp-card-title">Address</h3>
+        <p class="mb-1">@Model.AddressLine</p>
+        <p class="mb-0 text-muted">@Model.City, @Model.State — @Model.PinCode</p>
+    </div>
+</div>
+
+@* ===== Documents ===== *@
+<div class="erp-card" style="margin-top:1rem;">
+    <h3 class="erp-card-title">
+        Documents
+    </h3>
+    <partial name="_Documents" model="docs" />
+</div>
+
+@* ============ Confirm dialog ============ *@
+<div id="erpConfirm" class="erp-confirm" hidden>
+    <div class="erp-confirm-backdrop"></div>
+    <div class="erp-confirm-card" role="dialog" aria-modal="true" aria-labelledby="erpConfirmTitle">
+        <div class="erp-confirm-icon erp-confirm-icon-danger">
+            <svg><use href="#i-trash"/></svg>
+        </div>
+        <h3 id="erpConfirmTitle" class="erp-confirm-title">Delete client?</h3>
+        <p id="erpConfirmBody" class="erp-confirm-body">
+            This will permanently delete the client and all uploaded documents.
+        </p>
+        <div class="erp-confirm-actions">
+            <button type="button" class="btn btn-outline-primary" data-confirm="cancel">Cancel</button>
+            <button type="button" class="btn btn-danger" data-confirm="ok">Delete</button>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<script>
+(function () {
+    // ---------- Custom tooltip (works on disabled buttons) ----------
+    const wraps = document.querySelectorAll('.erp-tooltip-wrap[data-tooltip]');
+    let tipEl = null;
+
+    function showTip(text, anchor) {
+        if (!tipEl) {
+            tipEl = document.createElement('div');
+            tipEl.className = 'erp-tooltip';
+            document.body.appendChild(tipEl);
+        }
+        tipEl.textContent = text;
+        tipEl.classList.add('show');
+        const r = anchor.getBoundingClientRect();
+        const top = r.top - 8;
+        tipEl.style.top = `${top + window.scrollY}px`;
+        tipEl.style.left = `${r.left + r.width / 2 + window.scrollX}px`;
+    }
+    function hideTip() {
+        if (tipEl) tipEl.classList.remove('show');
+    }
+    wraps.forEach(w => {
+        w.addEventListener('mouseenter', () => showTip(w.dataset.tooltip, w));
+        w.addEventListener('mouseleave', hideTip);
+        w.addEventListener('focusin',  () => showTip(w.dataset.tooltip, w));
+        w.addEventListener('focusout', hideTip);
+    });
+
+    // ---------- Toast ----------
+    const host = document.createElement('div');
+    host.className = 'erp-toast-host';
+    host.setAttribute('aria-live', 'polite');
+    document.body.appendChild(host);
+
+    function toast(msg, type = 'success', ms = 3500) {
+        const el = document.createElement('div');
+        el.className = `erp-toast erp-toast-${type}`;
+        const iconId = type === 'success' ? 'i-check'
+                     : type === 'error'   ? 'i-close'
+                     : 'i-bell';
+        el.innerHTML = `
+            <svg class="erp-toast-icon"><use href="#${iconId}"/></svg>
+            <div class="erp-toast-msg">${msg}</div>
+            <button class="erp-toast-close" aria-label="Dismiss"><svg><use href="#i-close"/></svg></button>`;
+        host.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        const kill = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 220); };
+        el.querySelector('.erp-toast-close').addEventListener('click', kill);
+        setTimeout(kill, ms);
+    }
+
+    // Server-side TempData -> toast on load
+    const okMsg  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Toast"] as string));
+    const errMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"] as string));
+    if (okMsg)  toast(okMsg, 'success');
+    if (errMsg) toast(errMsg, 'error', 5000);
+
+    // ---------- Delete (with confirm) ----------
+    const btn = document.querySelector('.js-delete-client');
+    const dlg = document.getElementById('erpConfirm');
+    if (!btn || !dlg) return;
+
+    function token() {
+        return document.querySelector('input[name="__RequestVerificationToken"]').value;
+    }
+    function closeConfirm() {
+        dlg.classList.remove('show');
+        setTimeout(() => { dlg.hidden = true; }, 180);
+    }
+
+    btn.addEventListener('click', function () {
+        if (this.disabled) return;
+        if (this.dataset.inactive !== 'true') {
+            toast('Deactivate the client first, then delete.', 'info', 4000);
+            return;
+        }
+        document.getElementById('erpConfirmBody').textContent =
+            `Permanently delete “${this.dataset.name}” and all uploaded documents? This cannot be undone.`;
+        dlg.hidden = false;
+        requestAnimationFrame(() => dlg.classList.add('show'));
+    });
+
+    dlg.querySelector('[data-confirm="cancel"]').addEventListener('click', closeConfirm);
+    dlg.querySelector('.erp-confirm-backdrop').addEventListener('click', closeConfirm);
+    dlg.querySelector('[data-confirm="ok"]').addEventListener('click', async function () {
+        const id = btn.dataset.id;
+        closeConfirm();
+        try {
+            const body = new URLSearchParams({ id, __RequestVerificationToken: token() });
+            const res = await fetch('@Url.Action("Delete", "Clients")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            }).then(r => r.json());
+
+            if (res.ok) {
+                toast(res.message || 'Client deleted.', 'success');
+                setTimeout(() => location.href = '@Url.Action("Index", "Clients")', 600);
+            } else {
+                toast(res.message || 'Could not delete client.', 'error', 5000);
+            }
+        } catch {
+            toast('Network error. Try again.', 'error');
+        }
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !dlg.hidden) closeConfirm(); });
+})();
+</script>
+}

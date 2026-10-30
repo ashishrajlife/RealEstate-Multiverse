@@ -1,0 +1,67 @@
+@model IReadOnlyList<Multiverse.Web.Models.ClientDocument>
+@using Multiverse.Web.Models
+
+@if (Model.Count == 0)
+{
+    <div class="erp-empty">
+        <div class="erp-card-icon" style="--tone:#a29bfe"><svg><use href="#i-clipboard"/></svg></div>
+        <strong>No documents yet</strong>
+        <p>Upload Aadhaar, PAN, land proofs or agreements using the form below.</p>
+    </div>
+}
+else
+{
+    foreach (var group in Model.GroupBy(d => d.Type))
+    {
+        <h4 class="erp-section-title" style="margin-top:1rem;">
+            @group.Key.Label()
+        </h4>
+        <div class="erp-table-wrap">
+            <table class="table table-hover table-stack">
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Size</th>
+                        <th>Uploaded</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var doc in group)
+                {
+                    <tr>
+                        <td data-label="File">@doc.OriginalName</td>
+                        <td data-label="Size" class="erp-num">@((doc.SizeBytes / 1024.0).ToString("0.0")) KB</td>
+                        <td data-label="Uploaded" class="erp-num">@doc.UploadedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</td>
+                    <td data-label="Actions" class="text-center">
+    <div class="erp-actions">
+        <a asp-controller="ClientDocuments" asp-action="Inline" asp-route-id="@doc.Id"
+           class="erp-action-btn"
+           title="View" aria-label="View in new tab"
+           target="_blank" rel="noopener">
+            <svg><use href="#i-eye"/></svg>
+        </a>
+        <a asp-controller="ClientDocuments" asp-action="Download" asp-route-id="@doc.Id"
+           class="erp-action-btn"
+           title="Download" aria-label="Download">
+            <svg><use href="#i-download"/></svg>
+        </a>
+        <form asp-controller="ClientDocuments" asp-action="Delete" method="post" style="display:inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@doc.Id" />
+            <input type="hidden" name="clientId" value="@doc.ClientId" />
+            <button type="submit" class="erp-action-btn erp-action-danger"
+                    title="Delete" aria-label="Delete"
+                    onclick="return confirm('Delete this document permanently?');">
+                <svg><use href="#i-trash"/></svg>
+            </button>
+        </form>
+    </div>
+</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+}

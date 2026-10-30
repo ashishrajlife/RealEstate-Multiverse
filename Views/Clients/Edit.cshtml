@@ -1,0 +1,32 @@
+@model Multiverse.Web.ViewModels.ClientFormViewModel
+@{ 
+    ViewData["Title"] = "Edit Client";
+     var docs = (IReadOnlyList<ClientDocument>)ViewData["Documents"]!;  
+  }
+
+<div class="erp-page-header">
+    <div>
+        <h2>Edit client</h2>
+        <p>@Model.FullName</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-primary">Back to list</a>
+</div>
+
+<div class="erp-card">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <partial name="_Form" model="Model" />
+        <div class="d-flex gap-2 mt-3 justify-content-end">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a asp-action="Index" class="btn btn-danger">Cancel</a>
+        </div>
+    </form>
+</div>
+@* ===== Documents ===== *@
+<div class="erp-card" style="margin-top:1rem;">
+    <h3 class="erp-card-title">Documents</h3>
+    <partial name="_Documents" model="docs" />
+</div>
+
+<partial name="_DocumentUploadForm" model="Model.Id" />

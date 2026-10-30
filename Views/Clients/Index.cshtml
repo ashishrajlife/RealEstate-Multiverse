@@ -1,0 +1,569 @@
+@model Multiverse.Web.ViewModels.ClientListViewModel
+@using Multiverse.Web.Models
+@{
+    ViewData["Title"] = "Clients";
+}
+
+
+<div class="erp-page-header">
+    <div class="erp-page-header-text">
+        <h2>Clients</h2>
+        <p>Directory of all clients across India</p>
+    </div>
+    <div class="erp-page-actions">
+        <button type="button" class="btn btn-outline-primary" id="btnImport">
+            <svg style="width:16px;height:16px"><use href="#i-upload"/></svg>
+            <span class="btn-label">Import</span>
+        </button>
+        <a asp-action="Export"
+           asp-route-q="@Model.Query"
+           asp-route-status="@Model.Status"
+           asp-route-state="@Model.State"
+           asp-route-from="@(Model.CreatedFrom?.ToString("yyyy-MM-dd"))"
+           asp-route-to="@(Model.CreatedTo?.ToString("yyyy-MM-dd"))"
+           class="btn btn-outline-primary">
+            <svg style="width:16px;height:16px"><use href="#i-download"/></svg>
+            <span class="btn-label">Export</span>
+        </a>
+        <a asp-action="Create" class="btn btn-primary">
+            <svg style="width:18px;height:18px"><use href="#i-users"/></svg>
+            <span class="btn-label">New client</span>
+        </a>
+    </div>
+</div>
+
+
+<div class="erp-grid erp-grid-kpi" style="margin-bottom:1rem;">
+    <div class="erp-card tone" style="--tone:#48dbfb">
+        <div class="erp-card-icon" style="--tone:#48dbfb"><svg><use href="#i-users"/></svg></div>
+        <div class="erp-card-label">Total clients</div>
+        <div class="erp-card-value">@Model.Total</div>
+    </div>
+    <div class="erp-card tone" style="--tone:#7ee0a5">
+        <div class="erp-card-icon" style="--tone:#7ee0a5"><svg><use href="#i-users"/></svg></div>
+        <div class="erp-card-label">Active</div>
+        <div class="erp-card-value">@Model.Active</div>
+    </div>
+    <div class="erp-card tone" style="--tone:#feca57">
+        <div class="erp-card-icon" style="--tone:#feca57"><svg><use href="#i-chart"/></svg></div>
+        <div class="erp-card-label">New this week</div>
+        <div class="erp-card-value">@Model.NewThisWeek</div>
+    </div>
+</div>
+
+@* ===== Filter bar ===== *@
+<div class="erp-filterbar">
+    <form method="get" asp-action="Index" id="filterForm" class="erp-filterbar-inner">
+
+        <div class="erp-filter-field erp-filter-search">
+            <label for="clientSearch" class="erp-filter-label">Search</label>
+            <div class="erp-search-live">
+                <svg aria-hidden="true"><use href="#i-search"/></svg>
+                <input type="search" id="clientSearch" name="q"
+                       value="@Model.Query"
+                       placeholder="Name, email, phone, city…"
+                       autocomplete="off" />
+                <button type="button" id="clientSearchClear" class="erp-search-clear" hidden aria-label="Clear">
+                    <svg><use href="#i-close"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="erp-filter-field">
+            <label for="filterStatus" class="erp-filter-label">Status</label>
+            <select id="filterStatus" name="status" class="form-select erp-filter-select erp-filter-status">
+                <option value="">All statuses</option>
+                @foreach (var s in Enum.GetValues<ClientStatus>())
+                {
+                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                }
+            </select>
+        </div>
+
+       <div class="erp-filter-field">
+    <label class="erp-filter-label">State</label>
+
+    @* Hidden input carries the actual submitted value *@
+    <input type="hidden" name="state" id="filterState" value="@(Model.State?.ToString())" />
+
+    <div class="erp-dd" data-erp-dropdown>
+        <button type="button" class="erp-dd-trigger erp-filter-select" aria-haspopup="listbox" aria-expanded="false">
+            <span class="erp-dd-label">
+                @(Model.State is { } st
+                    ? System.Text.RegularExpressions.Regex.Replace(st.ToString(), "([a-z])([A-Z])", "$1 $2")
+                    : "All states")
+            </span>
+            <svg class="erp-dd-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5z" fill="currentColor"/></svg>
+        </button>
+
+        <div class="erp-dd-panel" role="listbox" hidden>
+            <div class="erp-dd-search">
+                <input type="search" placeholder="Search state…" class="erp-dd-search-input" autocomplete="off" />
+            </div>
+            <ul class="erp-dd-list">
+                <li>
+                    <button type="button" class="erp-dd-option @(Model.State is null ? "is-selected" : "")"
+                            role="option" data-value="" data-label="All states">All states</button>
+                </li>
+                @foreach (var s in Enum.GetValues<IndianState>())
+                {
+                    var label = System.Text.RegularExpressions.Regex.Replace(s.ToString(), "([a-z])([A-Z])", "$1 $2");
+                    <li>
+                        <button type="button" class="erp-dd-option @(Model.State == s ? "is-selected" : "")"
+                                role="option"
+                                data-value="@s"
+                                data-label="@label">@label</button>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="erp-filter-field erp-filter-dates">
+            <label class="erp-filter-label">Created between</label>
+            <div class="erp-filter-dates-row">
+                <input type="date" name="from" class="form-control erp-filter-select"
+                       value="@(Model.CreatedFrom?.ToString("yyyy-MM-dd"))" aria-label="Created from" title="From" />
+                <span class="erp-filter-date-sep">→</span>
+                <input type="date" name="to" class="form-control erp-filter-select"
+                       value="@(Model.CreatedTo?.ToString("yyyy-MM-dd"))" aria-label="Created to" title="To" />
+            </div>
+        </div>
+       
+            <div class="erp-filter-field erp-filter-clear-field" style="margin-left: 30px;">
+                <span class="erp-filter-label" aria-hidden="true">&nbsp;&nbsp;&nbsp;</span>
+                <a asp-action="Index" class="btn btn-outline-primary erp-filter-clear">Reset</a>
+            </div> 
+    </form>
+</div>
+
+@* ===== Bulk action bar (shown when rows selected) ===== *@
+<div id="bulkBar" class="erp-bulkbar" hidden>
+    <strong><span id="bulkCount">0</span> selected</strong>
+    <div class="erp-bulkbar-actions">
+        <button type="button" class="btn btn-sm btn-outline-primary" data-bulk="1">Activate</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-bulk="2">Deactivate</button>
+        <button type="button" class="btn btn-sm btn-outline-danger" data-bulk="3">Delete</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="bulkClear">Clear</button>
+    </div>
+</div>
+
+<div id="clientsResults">
+    <partial name="_ClientsTable" model="Model" />
+</div>
+
+@Html.AntiForgeryToken()
+
+<div id="importModal" class="erp-confirm" hidden>
+    <div class="erp-confirm-backdrop"></div>
+    <form asp-action="Import" method="post" enctype="multipart/form-data"
+          class="erp-confirm-card" style="text-align:left;max-width:480px;">
+        @Html.AntiForgeryToken()
+        <h3 class="erp-confirm-title" style="text-align:left;">Import clients from Excel</h3>
+        <p class="erp-confirm-body" style="text-align:left;">
+            Upload an <strong>.xlsx</strong> file. Expected headers (row 1): <code>Full Name</code>, <code>Email</code>,
+            <code>Phone</code>, <code>Aadhaar</code>, <code>PAN</code>, <code>Address</code>, <code>City</code>,
+            <code>State</code>, <code>PIN</code>, <code>Status</code>.
+        </p>
+        <input type="file" name="file" accept=".xlsx" class="form-control" required />
+        <div style="margin-top:.6rem;">
+            <a asp-action="Template" class="erp-inline-link" target="_blank" rel="noopener">
+                ↓ Download blank template
+            </a>
+        </div>
+        <div class="erp-confirm-actions" style="justify-content:flex-end;margin-top:1rem;">
+            <button type="button" class="btn btn-outline-primary" data-import="cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Import</button>
+        </div>
+    </form>
+</div>
+
+@* Toast + confirm ============ *@
+<div id="erpToastHost" class="erp-toast-host" aria-live="polite" aria-atomic="true"></div>
+
+<div id="erpConfirm" class="erp-confirm" hidden>
+    <div class="erp-confirm-backdrop"></div>
+    <div class="erp-confirm-card" role="dialog" aria-modal="true" aria-labelledby="erpConfirmTitle">
+        <div class="erp-confirm-icon erp-confirm-icon-danger"><svg><use href="#i-trash"/></svg></div>
+        <h3 id="erpConfirmTitle" class="erp-confirm-title">Confirm action</h3>
+        <p id="erpConfirmBody" class="erp-confirm-body"></p>
+        <div class="erp-confirm-actions">
+            <button type="button" class="btn btn-outline-primary" data-confirm="cancel">Cancel</button>
+            <button type="button" class="btn btn-danger" data-confirm="ok">Confirm</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const searchInput = document.getElementById('clientSearch');
+    const clearBtn    = document.getElementById('clientSearchClear');
+    const results     = document.getElementById('clientsResults');
+    const filterForm  = document.getElementById('filterForm');
+    const bulkBar     = document.getElementById('bulkBar');
+    const bulkCount   = document.getElementById('bulkCount');
+
+    // ---------- Toast ----------
+    const toastHost = document.getElementById('erpToastHost');
+    function toast(msg, type = 'success', ms = 3500) {
+        const el = document.createElement('div');
+        el.className = `erp-toast erp-toast-${type}`;
+        const iconId = type === 'success' ? 'i-check'
+                     : type === 'error'   ? 'i-close' : 'i-bell';
+        el.innerHTML = `<svg class="erp-toast-icon"><use href="#${iconId}"/></svg>
+                        <div class="erp-toast-msg">${msg}</div>
+                        <button class="erp-toast-close" aria-label="Dismiss"><svg><use href="#i-close"/></svg></button>`;
+        toastHost.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        const kill = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 220); };
+        el.querySelector('.erp-toast-close').addEventListener('click', kill);
+        setTimeout(kill, ms);
+    }
+    const okMsg  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Toast"] as string));
+    const errMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"] as string));
+    if (okMsg)  toast(okMsg, 'success');
+    if (errMsg) toast(errMsg, 'error', 5000);
+
+    // ---------- Anti-forgery ----------
+    function token() { return document.querySelector('input[name="__RequestVerificationToken"]').value; }
+    function postForm(url, data) {
+        const body = new URLSearchParams({ ...data, __RequestVerificationToken: token() });
+        return fetch(url, { method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body }).then(r => r.json());
+    }
+
+    // ---------- Selection (persists across pages in this session) ----------
+    const selected = new Set();
+    try {
+        const saved = sessionStorage.getItem('clientsSelected');
+        if (saved) JSON.parse(saved).forEach(id => selected.add(Number(id)));
+    } catch { }
+
+    function saveSelection() {
+        try { sessionStorage.setItem('clientsSelected', JSON.stringify([...selected])); } catch { }
+    }
+    function refreshBulkBar() {
+        const n = selected.size;
+        bulkCount.textContent = n;
+        bulkBar.hidden = n === 0;
+    }
+    function setRowCheck(tr, on) {
+        const cb = tr.querySelector('.js-row-check');
+        if (cb) cb.checked = on;
+    }
+    function syncSelectAll() {
+        const all = [...document.querySelectorAll('.js-row-check')];
+        const header = document.getElementById('selectAllClients');
+        if (!header) return;
+        const onPageSelected = all.filter(cb => cb.checked).length;
+        header.checked = all.length > 0 && onPageSelected === all.length;
+        header.indeterminate = onPageSelected > 0 && onPageSelected < all.length;
+    }
+
+    function wireSelection() {
+        document.querySelectorAll('.js-row-check').forEach(cb => {
+            if (cb.dataset.wired) return;
+            cb.dataset.wired = '1';
+            const id = Number(cb.value);
+            cb.checked = selected.has(id);
+            cb.addEventListener('change', () => {
+                if (cb.checked) selected.add(id); else selected.delete(id);
+                saveSelection();
+                refreshBulkBar();
+                syncSelectAll();
+            });
+        });
+
+        const header = document.getElementById('selectAllClients');
+        if (header && !header.dataset.wired) {
+            header.dataset.wired = '1';
+            header.addEventListener('change', () => {
+                document.querySelectorAll('.js-row-check').forEach(cb => {
+                    const id = Number(cb.value);
+                    cb.checked = header.checked;
+                    if (header.checked) selected.add(id); else selected.delete(id);
+                });
+                saveSelection();
+                refreshBulkBar();
+                syncSelectAll();
+            });
+        }
+        syncSelectAll();
+        refreshBulkBar();
+    }
+
+    // ---------- LIVE LOAD (search + filters + page) ----------
+    let abortCtl = null;
+    async function loadResults({ pushHistory = true } = {}) {
+        if (abortCtl) abortCtl.abort();
+        abortCtl = new AbortController();
+        results.style.opacity = .55;
+
+        const fd = new FormData(filterForm);
+        const params = new URLSearchParams();
+        for (const [k, v] of fd.entries()) if (v) params.set(k, v);
+
+        try {
+            const res = await fetch(`@Url.Action("Index", "Clients")?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: abortCtl.signal
+            });
+            if (!res.ok) throw new Error(res.statusText);
+            results.innerHTML = await res.text();
+
+            if (pushHistory) {
+                const url = `${location.pathname}${params.toString() ? '?' + params : ''}`;
+                history.replaceState({}, '', url);
+            }
+            wireRowHandlers();
+            wireSelection();
+        } catch (e) {
+            if (e.name !== 'AbortError') toast('Search failed. Try again.', 'error');
+        } finally {
+            results.style.opacity = 1;
+        }
+    }
+
+    let debounceT;
+    searchInput.addEventListener('input', function () {
+        const q = this.value.trim();
+        clearBtn.hidden = !q;
+        clearTimeout(debounceT);
+        debounceT = setTimeout(() => loadResults(), 300);
+    });
+    searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); clearTimeout(debounceT); loadResults(); }
+    });
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = ''; clearBtn.hidden = true; loadResults(); searchInput.focus();
+    });
+
+    // Filter dropdowns + dates: reload on change
+    filterForm.querySelectorAll('select, input[type=date]').forEach(el => {
+        el.addEventListener('change', () => loadResults());
+    });
+
+    // ---------- Row handlers (toggle/delete) ----------
+    function wireRowHandlers() {
+        document.querySelectorAll('.js-toggle-status').forEach(sw => {
+            if (sw.dataset.wired) return;
+            sw.dataset.wired = '1';
+            sw.addEventListener('change', async function () {
+                const id = this.dataset.id;
+                const row = this.closest('tr');
+                const label = row.querySelector('.erp-switch-label');
+                try {
+                    const res = await postForm('@Url.Action("ToggleStatus", "Clients")', { id });
+                    if (res.ok) {
+                        row.dataset.status = res.status;
+                        label.textContent = res.status;
+                        const del = row.querySelector('.js-delete-client');
+                        const inactive = res.status === 'Inactive';
+                        del.disabled = !inactive;
+                        del.dataset.inactive = inactive ? 'true' : 'false';
+                        del.title = inactive ? 'Delete client' : 'Deactivate first to delete';
+                        toast(`Client marked ${res.status}.`, 'success');
+                    } else {
+                        this.checked = !this.checked;
+                        toast(res.message || 'Could not update status.', 'error');
+                    }
+                } catch { this.checked = !this.checked; toast('Network error.', 'error'); }
+            });
+        });
+
+        document.querySelectorAll('.js-delete-client').forEach(btn => {
+            if (btn.dataset.wired) return;
+            btn.dataset.wired = '1';
+            btn.addEventListener('click', function () {
+                if (this.disabled) return;
+                if (this.dataset.inactive !== 'true') {
+                    toast('Deactivate the client first, then delete.', 'info', 4000);
+                    return;
+                }
+                openConfirm({
+                    body: `Permanently delete “${this.dataset.name}” and all uploaded documents? This cannot be undone.`,
+                    onOk: async () => {
+                        const r = await postForm('@Url.Action("Delete", "Clients")', { id: this.dataset.id });
+                        if (r.ok) { toast(r.message, 'success'); loadResults({ pushHistory: false }); }
+                        else toast(r.message || 'Could not delete.', 'error', 5000);
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.js-page').forEach(b => {
+            if (b.dataset.wired) return;
+            b.dataset.wired = '1';
+            b.addEventListener('click', function () {
+                if (this.disabled) return;
+                const page = parseInt(this.dataset.page, 10);
+                if (isNaN(page) || page < 1) return;
+                const p = new URLSearchParams(new FormData(filterForm));
+                p.set('page', page);
+                loadResultsWithParams(p);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    }
+
+    async function loadResultsWithParams(params, pushHistory = true) {
+        if (abortCtl) abortCtl.abort();
+        abortCtl = new AbortController();
+        results.style.opacity = .55;
+        try {
+            const res = await fetch(`@Url.Action("Index", "Clients")?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: abortCtl.signal
+            });
+            results.innerHTML = await res.text();
+            if (pushHistory) history.replaceState({}, '', `${location.pathname}?${params}`);
+            wireRowHandlers();
+            wireSelection();
+        } catch (e) { if (e.name !== 'AbortError') toast('Load failed.', 'error'); }
+        finally { results.style.opacity = 1; }
+    }
+
+        // ---------- Bulk actions ----------
+    document.querySelectorAll('[data-bulk]').forEach(b => {
+        b.addEventListener('click', async function () {
+            if (selected.size === 0) return;
+            const action = parseInt(this.dataset.bulk, 10);
+            const verbs  = { 1: 'activate', 2: 'deactivate', 3: 'delete' };
+            const run = async () => {
+                const r = await postForm('@Url.Action("Bulk", "Clients")',
+                    { action, ids: [...selected].join(',') });
+                if (r.ok) {
+                    toast(`${r.count} ${r.verb}.`, 'success');
+                    selected.clear(); saveSelection(); refreshBulkBar();
+                    loadResults({ pushHistory: false });
+                } else toast(r.message || 'Bulk action failed.', 'error', 5000);
+            };
+            if (action === 3) {
+                openConfirm({
+                    body: `Delete ${selected.size} selected client(s) and all their documents? Only inactive clients will be deleted.`,
+                    onOk: run
+                });
+            } else run();
+        });
+    });
+
+    // Guarded: bulkClear may not exist if the bulk bar is hidden/absent
+    const bulkClearBtn = document.getElementById('bulkClear');
+    if (bulkClearBtn) {
+        bulkClearBtn.addEventListener('click', () => {
+            selected.clear(); saveSelection(); refreshBulkBar();
+            document.querySelectorAll('.js-row-check').forEach(cb => cb.checked = false);
+            syncSelectAll();
+        });
+    }
+
+    // ---------- Confirm dialog ----------
+    const dlg = document.getElementById('erpConfirm');
+    let confirmCb = null;
+    function openConfirm({ body, onOk }) {
+        document.getElementById('erpConfirmBody').textContent = body;
+        confirmCb = onOk;
+        dlg.hidden = false;
+        requestAnimationFrame(() => dlg.classList.add('show'));
+    }
+    function closeConfirm() {
+        dlg.classList.remove('show');
+        setTimeout(() => { dlg.hidden = true; }, 180);
+        confirmCb = null;
+    }
+    dlg.querySelector('[data-confirm="cancel"]').addEventListener('click', closeConfirm);
+    dlg.querySelector('.erp-confirm-backdrop').addEventListener('click', closeConfirm);
+    dlg.querySelector('[data-confirm="ok"]').addEventListener('click', async () => {
+        const cb = confirmCb; closeConfirm(); if (cb) await cb();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !dlg.hidden) closeConfirm(); });
+
+      // ---------- Import modal ----------
+    const impModal = document.getElementById('importModal');
+    const btnImport = document.getElementById('btnImport');
+    if (btnImport && impModal) {
+        btnImport.addEventListener('click', () => {
+            impModal.hidden = false;
+            requestAnimationFrame(() => impModal.classList.add('show'));
+        });
+        const closeImport = () => {
+            impModal.classList.remove('show');
+            setTimeout(() => impModal.hidden = true, 180);
+        };
+        impModal.querySelector('[data-import="cancel"]')?.addEventListener('click', closeImport);
+        impModal.querySelector('.erp-confirm-backdrop')?.addEventListener('click', closeImport);
+    }
+    
+    // ---------- Wire on first load ----------
+    wireRowHandlers();
+    wireSelection();
+    const initialQ = new URLSearchParams(location.search).get('q');
+    if (initialQ) { searchInput.value = initialQ; clearBtn.hidden = false; }
+})();
+
+    // ---------- Custom dropdown (state filter) ----------
+    (function initCustomDropdown() {
+        const dd = document.querySelector('[data-erp-dropdown]');
+        if (!dd) return;
+        const trigger = dd.querySelector('.erp-dd-trigger');
+        const panel   = dd.querySelector('.erp-dd-panel');
+        const search  = dd.querySelector('.erp-dd-search-input');
+        const label   = dd.querySelector('.erp-dd-label');
+        const hidden  = document.getElementById('filterState');
+        const options = [...panel.querySelectorAll('.erp-dd-option')];
+
+        function openPanel() {
+            panel.hidden = false;
+            trigger.setAttribute('aria-expanded', 'true');
+            search.value = '';
+            options.forEach(o => o.style.display = '');
+            panel.scrollTop = 0;
+            // focus search after the panel is visible
+            requestAnimationFrame(() => search.focus());
+        }
+        function closePanel() {
+            panel.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+        function choose(opt) {
+            hidden.value = opt.dataset.value;
+            label.textContent = opt.dataset.label;
+            options.forEach(o => o.classList.toggle('is-selected', o === opt));
+            closePanel();
+            // trigger the same change flow the native select had
+            hidden.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        trigger.addEventListener('click', e => {
+            e.preventDefault();
+            panel.hidden ? openPanel() : closePanel();
+        });
+
+        options.forEach(opt => {
+            opt.addEventListener('click', () => choose(opt));
+        });
+
+        search.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            options.forEach(o => {
+                const hit = !q || o.dataset.label.toLowerCase().includes(q);
+                o.style.display = hit ? '' : 'none';
+            });
+        });
+
+        document.addEventListener('click', e => {
+            if (!dd.contains(e.target)) closePanel();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !panel.hidden) closePanel();
+        });
+
+        // Make the existing filter AJAX wiring pick up the hidden input's change
+        hidden.addEventListener('change', () => loadResults());
+    })();
+
+</script>
+}

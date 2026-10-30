@@ -1,0 +1,66 @@
+@{
+    ViewData["Title"] = ViewData["OriginalName"];
+    Layout = null;   // fully self-contained, no shell
+    var isPdf   = (bool)(ViewData["IsPdf"] ?? false);
+    var isImage = (bool)(ViewData["IsImage"] ?? false);
+    var name    = ViewData["OriginalName"] as string ?? "Document";
+    var fileUrl = ViewData["FileUrl"] as string ?? "";
+    var dlUrl   = ViewData["DownloadUrl"] as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d1530" />
+    <title>@name · Multiverse</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    <style>
+        *,*::before,*::after{box-sizing:border-box}
+        html,body{height:100%;margin:0;font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1530;color:#e6ecf7}
+        .viewer{display:flex;flex-direction:column;height:100dvh}
+        .viewer-title{flex:1;min-width:0;font-weight:600;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .viewer-meta{font-size:.78rem;color:#8a97a8;margin-left:.25rem}
+        .btn{
+            display:inline-flex;align-items:center;gap:.4rem;
+            padding:.5rem .85rem;border-radius:10px;font-size:.85rem;font-weight:600;
+            text-decoration:none;border:1.5px solid transparent;cursor:pointer;
+        }
+        .btn-primary{background:linear-gradient(135deg,#4a90e2,#3b6fe0);color:#fff;box-shadow:0 8px 20px -8px rgba(74,144,226,.55)}
+        .btn-primary:hover{filter:brightness(1.06);color:#fff}
+        .btn-ghost{background:transparent;color:#a9b6d0;border-color:rgba(255,255,255,.14)}
+        .btn-ghost:hover{background:rgba(255,255,255,.06);color:#fff}
+        .btn svg{width:16px;height:16px}
+        .viewer-body{flex:1;position:relative;background:#05080f}
+        iframe,.viewer-body img{width:100%;height:100%;border:0;display:block}
+        .viewer-body img{object-fit:contain;background:#0a0f1e}
+        .viewer-fallback{
+            display:grid;place-items:center;height:100%;color:#8a97a8;
+            text-align:center;padding:2rem;font-size:.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="viewer">
+
+        <div class="viewer-body">
+            @if (isPdf)
+            {
+                <iframe src="@fileUrl" title="@name"></iframe>
+            }
+            else if (isImage)
+            {
+                <img src="@fileUrl" alt="@name" />
+            }
+            else
+            {
+                <div class="viewer-fallback">
+                    This file type can’t be previewed.
+                    <br />
+                    <a class="btn btn-primary" style="margin-top:1rem" href="@dlUrl">Download to open</a>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

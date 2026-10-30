@@ -1,0 +1,25 @@
+@model int
+@using Multiverse.Web.Models
+
+<form asp-controller="ClientDocuments" asp-action="Upload" method="post" enctype="multipart/form-data"
+      class="erp-card" style="margin-top:1rem;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="clientId" value="@Model" />
+
+    <h4 class="erp-card-title">Upload document</h4>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Document type</label>
+            <select name="type" class="form-select" required
+                    asp-items="Html.GetEnumSelectList<DocumentType>()"></select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">File (PDF / JPG / PNG, max 10 MB)</label>
+            <input type="file" name="file" class="form-control"
+                   accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required />
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Upload</button>
+        </div>
+    </div>
+</form>

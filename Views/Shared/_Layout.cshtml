@@ -1,0 +1,273 @@
+﻿@{
+    // Set ViewData["Bare"] = true on pages like Login that must not show the app shell.
+    var bare = ViewData["Bare"] as bool? ?? false;
+    var controller = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
+    var userName = User?.Identity?.IsAuthenticated == true ? User.Identity!.Name : "Guest";
+    var initials = string.IsNullOrWhiteSpace(userName) ? "G" : userName!.Trim().Substring(0, 1).ToUpper();
+
+    var role = User.IsInRole("Admin")        ? "Admin"
+             : User.IsInRole("Hod")          ? "Hod"
+             : User.IsInRole("Manager")      ? "Manager"
+             : User.IsInRole("Receptionist") ? "Receptionist"
+             : User.IsInRole("Client")       ? "Client"
+             : "";
+
+    var roleLabel = role switch
+    {
+        "Admin"        => "Administrator",
+        "Hod"          => "Head of Department",
+        "Manager"      => "Manager",
+        "Receptionist" => "Receptionist",
+        "Client"       => "Client",
+        _              => ""
+    };
+
+    // Menu items — (Group, Label, Href, Ctrl, Icon, Tone)
+    var menu = new List<(string Group, string Label, string Href, string Ctrl, string Icon, string Tone)>();
+
+    if (role == "Admin")
+    {
+        menu.Add(("Overview", "Dashboard",   "~/Admin/Dashboard",     "Admin",      "i-dashboard", "#48dbfb"));
+        menu.Add(("Manage",   "Clients",     "~/Clients",             "Clients",    "i-users",     "#7ee0a5"));
+        menu.Add(("Manage",   "Properties",  "~/Properties",          "Properties", "i-building",  "#feca57"));
+        menu.Add(("Manage",   "Approvals",   "~/Approvals",           "Approvals",  "i-clipboard", "#a29bfe"));
+        menu.Add(("Finance",  "Payments",    "~/Payments",            "Payments",   "i-wallet",    "#7ee0a5"));
+        menu.Add(("Finance",  "Reports",     "~/Reports",             "Reports",    "i-chart",     "#ff9ff3"));
+        menu.Add(("System",   "Settings",    "~/Settings",            "Settings",   "i-settings",  "#48dbfb"));
+    }
+    else if (role == "Hod")
+    {
+        menu.Add(("Overview", "Dashboard",   "~/Hod/Dashboard",       "Hod",        "i-dashboard", "#48dbfb"));
+        menu.Add(("Manage",   "Approvals",   "~/Approvals",           "Approvals",  "i-clipboard", "#a29bfe"));
+        menu.Add(("Manage",   "Properties",  "~/Properties",          "Properties", "i-building",  "#feca57"));
+        menu.Add(("Reports",  "Reports",     "~/Reports",             "Reports",    "i-chart",     "#ff9ff3"));
+    }
+    else if (role == "Manager")
+    {
+        menu.Add(("Overview", "Dashboard",   "~/Manager/Dashboard",   "Manager",    "i-dashboard", "#48dbfb"));
+        menu.Add(("Manage",   "Clients",     "~/Clients",             "Clients",    "i-users",     "#7ee0a5"));
+        menu.Add(("Manage",   "Properties",  "~/Properties",          "Properties", "i-building",  "#feca57"));
+        menu.Add(("Manage",   "Deals",       "~/Deals",               "Deals",      "i-key",       "#a29bfe"));
+        menu.Add(("Finance",  "Payments",    "~/Payments",            "Payments",   "i-wallet",    "#7ee0a5"));
+    }
+    else if (role == "Receptionist")
+    {
+        menu.Add(("Overview",  "Dashboard",  "~/Reception/Dashboard", "Reception",  "i-dashboard", "#48dbfb"));
+        menu.Add(("Front desk","Clients",    "~/Clients",             "Clients",    "i-users",     "#7ee0a5"));
+        menu.Add(("Front desk","Requests",   "~/Requests",            "Requests",   "i-clipboard", "#a29bfe"));
+    }
+    else if (role == "Client")
+    {
+        menu.Add(("Overview", "Dashboard",   "~/Client/Dashboard",    "Client",     "i-dashboard", "#48dbfb"));
+        menu.Add(("My home",  "My property", "~/MyProperty",          "MyProperty", "i-building",  "#feca57"));
+        menu.Add(("My home",  "Rent",        "~/Rent",                "Rent",       "i-wallet",    "#7ee0a5"));
+        menu.Add(("My home",  "Requests",    "~/Requests",            "Requests",   "i-clipboard", "#a29bfe"));
+    }
+    else
+    {
+        menu.Add(("Overview", "Dashboard",   "~/",                    "Home",       "i-dashboard", "#48dbfb"));
+    }
+
+    string Active(string c) => string.Equals(controller, c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1530" />
+    <title>@ViewData["Title"] - Multiverse</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Multiverse.Web.styles.css" asp-append-version="true" />
+
+    @* Restore the collapsed-sidebar choice before first paint so the layout doesn't jump. *@
+    <script>
+        try { if (localStorage.getItem('erp-collapsed') === '1') document.documentElement.classList.add('erp-collapsed'); } catch (e) { }
+    </script>
+</head>
+<body class="@(bare ? "erp-bare" : "erp-shell")">
+
+@* ---------- Icon sprite (no external icon library needed) ---------- *@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="i-dashboard" viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z" fill="currentColor"/></symbol>
+        <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l8-3 8 3v16h-6v-5h-4v5H4Zm4-12h2V7H8v2Zm6 0h2V7h-2v2Zm-6 4h2v-2H8v2Zm6 0h2v-2h-2v2Z" fill="currentColor"/></symbol>
+        <symbol id="i-users" viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-3 0-7 1.5-7 4.5V20h14v-2.5c0-3-4-4.5-7-4.5Zm7.5.1c.3 0 .5-.1.5-.1 2.7 0 5 1.2 5 3.5V20h-4v-2.5c0-1.6-.7-3-1.5-4.4Z" fill="currentColor"/></symbol>
+        <symbol id="i-key" viewBox="0 0 24 24"><path d="M14 3a6 6 0 0 0-5.7 7.9L2 17.2V21h4v-2h2v-2h2l1.6-1.6A6 6 0 1 0 14 3Zm2 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z" fill="currentColor"/></symbol>
+        <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h13v3H5v1h15a1 1 0 0 1 1 1v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Zm13 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" fill="currentColor"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4h2v14h14v2H4Zm4-4v-5h3v5H8Zm5 0V8h3v8h-3Zm5 0v-3h3v3h-3Z" fill="currentColor"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8.4 5.3-1.8-1a6.8 6.8 0 0 0 0-1.6l1.8-1a.5.5 0 0 0 .2-.7l-1.8-3a.5.5 0 0 0-.6-.2l-2 .8a7 7 0 0 0-1.4-.8l-.3-2.1a.5.5 0 0 0-.5-.4h-3.6a.5.5 0 0 0-.5.4l-.3 2.1c-.5.2-1 .5-1.4.8l-2-.8a.5.5 0 0 0-.6.2l-1.8 3a.5.5 0 0 0 .2.7l1.8 1a6.8 6.8 0 0 0 0 1.6l-1.8 1a.5.5 0 0 0-.2.7l1.8 3c.1.2.4.3.6.2l2-.8c.4.3.9.6 1.4.8l.3 2.1c0 .2.3.4.5.4h3.6c.2 0 .5-.2.5-.4l.3-2.1c.5-.2 1-.5 1.4-.8l2 .8c.2.1.5 0 .6-.2l1.8-3a.5.5 0 0 0-.2-.7Z" fill="currentColor"/></symbol>
+        <symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M9 2h6a1 1 0 0 1 1 1v1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3V3a1 1 0 0 1 1-1Zm1 2v2h4V4h-4Zm-2 7h8v2H8v-2Zm0 4h8v2H8v-2Z" fill="currentColor"/></symbol>
+        <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3Zm6.500 4.500L15 9l2 2H9v2h8l-2 2 1.500 1.500L21 12l-4.500-4.500Z" fill="currentColor"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z" fill="currentColor"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><path d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.3 4.3-1.4 1.4-4.3-4.3A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z" fill="currentColor"/></symbol>
+        <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5-6.7V3.5a2 2 0 0 0-4 0v.8A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z" fill="currentColor"/></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z" fill="currentColor"/></symbol>
+        <symbol id="i-dots" viewBox="0 0 24 24"><path d="M5 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" fill="currentColor"/></symbol>
+        <symbol id="i-chevrons" viewBox="0 0 24 24"><path d="m11 7-5 5 5 5 1.4-1.4L8.8 12l3.6-3.6L11 7Zm6 0-5 5 5 5 1.4-1.4-3.6-3.6 3.6-3.6L17 7Z" fill="currentColor"/></symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24"><path d="M12 5C6.5 5 2 9.5 2 12s4.5 7 10 7 10-4.5 10-7-4.5-7-10-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" fill="currentColor"/></symbol>
+        <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75l11-11-3.75-3.75-11 11ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" fill="currentColor"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12Zm3.46-8.12a1 1 0 0 1 1.42 0L12 12l1.12-1.12a1 1 0 0 1 1.42 1.42L13.41 13.41l1.13 1.13a1 1 0 1 1-1.42 1.42L12 14.83l-1.12 1.12a1 1 0 0 1-1.42-1.42l1.13-1.13-1.13-1.13a1 1 0 0 1 0-1.42ZM15.5 4l-1-1h-5l-1 1H5v2h14V4h-3.5Z" fill="currentColor"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17 4.83 12 3.41 13.41 9 19 21 7l-1.41-1.41L9 16.17Z" fill="currentColor"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v10.55l3.5-3.5 1.41 1.41L12 16.38l-4.91-4.92 1.41-1.41L12 13.55V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 3 7 8h3v7h4V8h3l-5-5Zm-7 15v3h14v-3h-2v1H7v-1H5Z" fill="currentColor"/></symbol>
+    </defs>
+</svg>
+
+@if (bare)
+{
+    <main role="main" class="erp-bare-main">@RenderBody()</main>
+}
+else
+{
+    <a class="erp-skip" href="#erp-content">Skip to content</a>
+
+    <aside class="erp-sidebar" id="erpSidebar" aria-label="Main navigation">
+        <div class="erp-sidebar-head">
+            <a class="erp-brand" href="~/" title="Multiverse">
+                <span class="erp-brand-text">Multiverse</span><span class="erp-brand-inf" aria-hidden="true">&infin;</span>
+            </a>
+            <button type="button" class="erp-icon-btn erp-sidebar-close" data-erp-close aria-label="Close menu"><svg><use href="#i-close"/></svg></button>
+        </div>
+
+        <nav class="erp-nav">
+            @{ string? lastGroup = null; }
+            @foreach (var m in menu)
+            {
+                if (m.Group != lastGroup)
+                {
+                    <p class="erp-nav-group">@m.Group</p>
+                    lastGroup = m.Group;
+                }
+                <a class="erp-nav-link @Active(m.Ctrl)" href="@Url.Content(m.Href)" title="@m.Label" style="--tone:@m.Tone"
+                   aria-current="@(Active(m.Ctrl) == "active" ? "page" : null)">
+                    <svg><use href="#@m.Icon"/></svg><span class="erp-nav-label">@m.Label</span>
+                </a>
+            }
+        </nav>
+
+        <div class="erp-sidebar-foot">
+            <div class="erp-user">
+                <span class="erp-avatar" aria-hidden="true">@initials</span>
+                <span class="erp-user-text"><strong>@userName</strong><small>@roleLabel</small></span>
+            </div>
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="erp-collapse-btn erp-logout" title="Log out">
+                    <svg><use href="#i-logout"/></svg><span class="erp-nav-label">Log out</span>
+                </button>
+            </form>
+            <button type="button" class="erp-collapse-btn" id="erpCollapse" aria-label="Collapse sidebar" title="Collapse sidebar">
+                <svg><use href="#i-chevrons"/></svg><span class="erp-nav-label">Collapse</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="erp-scrim" data-erp-close></div>
+
+    <div class="erp-main">
+        <header class="erp-topbar">
+            <button type="button" class="erp-icon-btn erp-menu-btn" id="erpMenuBtn" aria-controls="erpSidebar" aria-expanded="false" aria-label="Open menu">
+                <svg><use href="#i-menu"/></svg>
+            </button>
+
+            <h1 class="erp-topbar-title">@(ViewData["Title"] ?? "Dashboard")</h1>
+
+            <div class="erp-topbar-actions">
+                <button type="button" class="erp-icon-btn" aria-label="Notifications"><svg><use href="#i-bell"/></svg><span class="erp-dot" aria-hidden="true"></span></button>
+                <span class="erp-avatar erp-avatar-top" aria-hidden="true">@initials</span>
+            </div>
+        </header>
+
+        <main role="main" class="erp-content" id="erp-content">
+            @RenderBody()
+        </main>
+
+        <footer class="erp-footer">
+            <span>&copy; @DateTime.Now.Year Multiverse — Real Estate ERP (Demo)</span>
+        </footer>
+    </div>
+
+    @* Phone-only bottom tab bar: thumb-reachable primary destinations *@
+    <nav class="erp-bottomnav" aria-label="Quick navigation">
+        @foreach (var m in menu.Take(4))
+        {
+            <a class="@Active(m.Ctrl)" href="@Url.Content(m.Href)"><svg><use href="#@m.Icon"/></svg><span>@m.Label</span></a>
+        }
+        <button type="button" data-erp-open aria-label="More"><svg><use href="#i-dots"/></svg><span>More</span></button>
+    </nav>
+}
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @if (!bare)
+    {
+        <script>
+        (function () {
+            var root = document.documentElement;
+            var menuBtn = document.getElementById('erpMenuBtn');
+            var sidebar = document.getElementById('erpSidebar');
+            var collapseBtn = document.getElementById('erpCollapse');
+            var wide = window.matchMedia('(min-width: 1200px)');
+
+            function setOpen(open) {
+                root.classList.toggle('erp-nav-open', open);
+                if (menuBtn) menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                document.body.style.overflow = (open && !wide.matches) ? 'hidden' : '';
+                if (open && !wide.matches && sidebar) {
+                    var first = sidebar.querySelector('.erp-nav-link');
+                    if (first) first.focus();
+                }
+            }
+            function toggleCollapsed() {
+                var c = root.classList.toggle('erp-collapsed');
+                try { localStorage.setItem('erp-collapsed', c ? '1' : '0'); } catch (e) { }
+            }
+
+            if (menuBtn) {
+                menuBtn.addEventListener('click', function () {
+                    if (wide.matches) toggleCollapsed();
+                    else setOpen(!root.classList.contains('erp-nav-open'));
+                });
+            }
+            if (collapseBtn) collapseBtn.addEventListener('click', toggleCollapsed);
+            document.querySelectorAll('[data-erp-open]').forEach(function (b) {
+                b.addEventListener('click', function () { setOpen(true); });
+            });
+            document.querySelectorAll('[data-erp-close]').forEach(function (b) {
+                b.addEventListener('click', function () { setOpen(false); });
+            });
+            if (sidebar) {
+                sidebar.querySelectorAll('.erp-nav-link').forEach(function (a) {
+                    a.addEventListener('click', function () { setOpen(false); });
+                });
+            }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') setOpen(false);
+            });
+            wide.addEventListener('change', function () { setOpen(false); });
+
+            // Phone search: toggles a full-width search row in the top bar.
+            var sBtn = document.getElementById('erpSearchToggle');
+            var sInput = document.getElementById('erpSearchInput');
+            if (sBtn && sInput) {
+                sBtn.addEventListener('click', function () {
+                    var on = document.documentElement.classList.toggle('erp-search-open');
+                    if (on) sInput.focus();
+                });
+            }
+        })();
+        </script>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

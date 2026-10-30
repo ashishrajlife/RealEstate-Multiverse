@@ -1,0 +1,388 @@
+@model Multiverse.Web.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Sign in";
+    ViewData["Bare"] = true;
+}
+
+<div class="mv-world" id="mvWorld">
+
+    <div class="mv-toasts" id="mvToasts" aria-live="polite" aria-atomic="false"></div>
+
+    @* ---------- Atmosphere (decorative) ---------- *@
+    <div class="mv-atmos" aria-hidden="true">
+        <div class="mv-aurora mv-aurora-a"></div>
+        <div class="mv-aurora mv-aurora-b"></div>
+        <div class="mv-aurora mv-aurora-c"></div>
+        <div class="mv-stars" id="mvStars"></div>
+
+        <div class="mv-portal" data-depth="16">
+            <span class="mv-ring mv-ring-1"></span>
+            <span class="mv-ring mv-ring-2"></span>
+            <span class="mv-ring mv-ring-3"></span>
+            <span class="mv-moon"></span>
+        </div>
+
+        <div class="mv-horizon"></div>
+        <div class="mv-city mv-far"  id="mvFar"  data-depth="6"></div>
+        <div class="mv-city mv-near" id="mvNear" data-depth="14"></div>
+        <div class="mv-beam"></div>
+
+        <div class="mv-ground">
+            <div class="mv-marquee">
+                <div class="mv-marquee-track">
+                    <span>Properties</span><span>Units</span><span>Tenants</span><span>Leases</span><span>Collections</span><span>Maintenance</span><span>Brokers</span><span>Reports</span>
+                    <span>Properties</span><span>Units</span><span>Tenants</span><span>Leases</span><span>Collections</span><span>Maintenance</span><span>Brokers</span><span>Reports</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ---------- Top bar ---------- *@
+    <header class="mv-top">
+        <div class="mv-top-brand">
+            <span class="mv-login-word">Multiverse</span><span class="mv-login-inf">∞</span>
+        </div>
+        <div class="mv-top-pill">
+            <span class="mv-dot"></span>Real Estate ERP
+        </div>
+    </header>
+
+    @* ---------- Orbiting KPI chips (sample visuals, desktop only) ---------- *@
+    <div class="mv-orbit" aria-hidden="true">
+        <div class="mv-chip mv-chip-1" data-depth="30">
+            <div class="mv-chip-ico mv-ico-sky"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 21V9l9-6 9 6v12h-6v-6H9v6H3z"/></svg></div>
+            <div class="mv-chip-body">
+                <small>Portfolio occupancy</small>
+                <strong>94%</strong>
+                <span class="mv-bar"><i style="--w:94%"></i></span>
+            </div>
+        </div>
+
+        <div class="mv-chip mv-chip-2" data-depth="44">
+            <div class="mv-chip-ico mv-ico-violet"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg></div>
+            <div class="mv-chip-body">
+                <small>Collections this month</small>
+                <svg class="mv-spark" viewBox="0 0 120 34" preserveAspectRatio="none">
+                    <path class="mv-spark-fill" d="M0 28 L15 24 L30 26 L45 16 L60 19 L75 9 L90 12 L105 4 L120 6 L120 34 L0 34 Z"/>
+                    <path class="mv-spark-line" d="M0 28 L15 24 L30 26 L45 16 L60 19 L75 9 L90 12 L105 4 L120 6" pathLength="1"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="mv-chip mv-chip-3" data-depth="24">
+            <div class="mv-chip-ico mv-ico-mint"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></div>
+            <div class="mv-chip-body">
+                <small>New lease signed</small>
+                <strong>Tower B · Unit 12</strong>
+            </div>
+        </div>
+
+        <div class="mv-chip mv-chip-4" data-depth="36">
+            <div class="mv-chip-ico mv-ico-amber"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M22.7 19 13.6 9.9a5 5 0 0 0-6.2-6.8l3 3-2.3 2.3-3-3a5 5 0 0 0 6.8 6.2l9.1 9.1a1 1 0 0 0 1.4 0l1.3-1.4a1 1 0 0 0 0-1.3z"/></svg></div>
+            <div class="mv-chip-body">
+                <small>Maintenance resolved</small>
+                <strong>18 of 21 requests</strong>
+            </div>
+        </div>
+    </div>
+
+    @* ---------- Login card ---------- *@
+    <main class="mv-center">
+        <div class="mv-tilt" id="mvTilt">
+            <div class="mv-login-card" id="mvCard">
+                <div class="mv-card-head">
+                    <div class="mv-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 21V9l9-6 9 6v12h-6v-6H9v6H3z"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="mv-login-title">Welcome back</h1>
+                        <p class="mv-login-sub">Sign in to your portfolio workspace.</p>
+                    </div>
+                </div>
+
+                <form asp-action="Login" method="post" novalidate id="mvLoginForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mv-field">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <div class="mv-input">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 7.2L4.6 7 4 8.2l8 5.4 8-5.4L19.4 7 12 12.2z"/></svg>
+                            <input asp-for="Email" class="form-control" autocomplete="username" placeholder="you@multiverse.local" />
+                        </div>
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="mv-field">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <div class="mv-input">
+                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zM10 7a2 2 0 0 1 4 0v2h-4V7z"/></svg>
+                            <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" placeholder="••••••••" />
+                            <button type="button" class="mv-eye" id="mvEye" aria-label="Show password" aria-pressed="false">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 5C7 5 2.7 8.1 1 12.5 2.7 16.9 7 20 12 20s9.3-3.1 11-7.5C21.3 8.1 17 5 12 5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                    </div>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+                    <button type="submit" class="btn btn-erp-primary mv-submit" id="mvSubmit">
+                        <span class="mv-submit-label">Sign in</span>
+                        <span class="mv-spinner" aria-hidden="true"></span>
+                    </button>
+                </form>
+
+                <p class="mv-foot">
+                    <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3z"/></svg>
+                    Encrypted session
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+(function () {
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    // ---------- City layers (only lit windows are real nodes; dim panes are CSS) ----------
+    // [width%, height%, tone, spire]
+    var FAR = [
+        [6,42,'a'],[5,60,'b'],[7,48,'c'],[5,74,'a',1],[6,52,'b'],[8,66,'c'],[5,40,'a'],[7,82,'b',1],[6,56,'c'],
+        [8,46,'a'],[5,70,'b'],[7,58,'c'],[6,86,'a',1],[5,50,'b'],[8,64,'c'],[6,44,'a'],[7,72,'b'],[5,54,'c']
+    ];
+    var NEAR = [
+        [8,38,'a'],[6,56,'b'],[9,46,'c'],[7,76,'a',1],[10,52,'b'],[8,92,'c',1],[9,60,'a'],[7,44,'b'],
+        [10,70,'c'],[8,50,'a'],[9,84,'b',1],[7,40,'c'],[10,58,'a']
+    ];
+    function city(id, spec, lit, flicker) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = spec.map(function (b, i) {
+            return '<div class="mv-bld mv-bld-' + b[2] + '" style="--w:' + b[0] + '%;--h:' + b[1] + '%;--i:' + i + '">' +
+                   (b[3] ? '<em class="mv-spire"></em>' : '') + '<div class="mv-win"></div></div>';
+        }).join('');
+        Array.prototype.forEach.call(el.children, function (b) {
+            var cols = Math.max(2, Math.floor((b.clientWidth - 12) / 13));
+            var rows = Math.max(3, Math.floor((b.clientHeight - 8) / 17));
+            var win = b.querySelector('.mv-win'), cells = '';
+            win.style.setProperty('--cols', cols);
+            win.style.setProperty('--rows', rows);
+            for (var r = 1; r <= rows; r++) for (var c = 1; c <= cols; c++) {
+                if (Math.random() < lit) {
+                    var fl = flicker && Math.random() < .12;
+                    cells += '<i style="grid-area:' + r + '/' + c + (fl ? ';--d:' + rnd(0, 7).toFixed(2) + 's" class="fl' : '') + '"></i>';
+                }
+            }
+            win.innerHTML = cells;
+        });
+    }
+    function buildCity() { city('mvFar', FAR, .22, false); city('mvNear', NEAR, .42, true); }
+    buildCity();
+    var lastW = window.innerWidth;
+    window.addEventListener('resize', function () {
+        clearTimeout(buildCity.t);
+        buildCity.t = setTimeout(function () {
+            if (Math.abs(window.innerWidth - lastW) > 120) { lastW = window.innerWidth; buildCity(); }
+        }, 250);
+    });
+
+    // ---------- Stars ----------
+    var st = document.getElementById('mvStars');
+    if (st) {
+        var s = '';
+        for (var k = 0; k < 60; k++) {
+            s += '<i style="left:' + rnd(0, 100).toFixed(1) + '%;top:' + rnd(0, 60).toFixed(1) + '%;--s:' + rnd(1, 2.6).toFixed(1) +
+                 'px;--d:' + rnd(0, 5).toFixed(1) + 's;--t:' + rnd(2.5, 5.5).toFixed(1) + 's"></i>';
+        }
+        st.innerHTML = s;
+    }
+
+    // ---------- Pointer effects: one rAF loop, eased, transform-only ----------
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var world = document.getElementById('mvWorld');
+    var tilt = document.getElementById('mvTilt');
+    var card = document.getElementById('mvCard');
+
+    if (world && fine && !reduce) {
+        var layers = Array.prototype.map.call(world.querySelectorAll('[data-depth]'), function (el) {
+            return { el: el, d: parseFloat(el.getAttribute('data-depth')) };
+        });
+        var tx = 0, ty = 0, x = 0, y = 0;            // pointer target / eased value (-0.5..0.5)
+        var sTx = 215, sTy = 80, sx = 215, sy = 80;   // spotlight target / eased (px inside card)
+        var box = null, running = false;
+
+        function measure() {
+            if (!card) return;
+            var r = card.getBoundingClientRect();
+            box = { l: r.left, t: r.top };
+        }
+        measure();
+        window.addEventListener('resize', measure, { passive: true });
+        window.addEventListener('scroll', measure, { passive: true });
+
+        function frame() {
+            x += (tx - x) * .085;
+            y += (ty - y) * .085;
+            sx += (sTx - sx) * .22;
+            sy += (sTy - sy) * .22;
+
+            for (var i = 0; i < layers.length; i++) {
+                var L = layers[i];
+                L.el.style.transform = 'translate3d(' + (-x * L.d).toFixed(2) + 'px,' + (-y * L.d * .6).toFixed(2) + 'px,0)';
+            }
+            if (tilt) tilt.style.transform = 'rotateX(' + (-y * 6).toFixed(3) + 'deg) rotateY(' + (x * 8).toFixed(3) + 'deg)';
+            if (card) {
+                card.style.setProperty('--mx', sx.toFixed(1) + 'px');
+                card.style.setProperty('--my', sy.toFixed(1) + 'px');
+            }
+
+            var settled = Math.abs(tx - x) < .0004 && Math.abs(ty - y) < .0004 && Math.abs(sTx - sx) < .2 && Math.abs(sTy - sy) < .2;
+            if (settled) { running = false; return; }
+            requestAnimationFrame(frame);
+        }
+        function kick() { if (!running) { running = true; requestAnimationFrame(frame); } }
+
+        world.addEventListener('pointermove', function (e) {
+            if (e.pointerType && e.pointerType !== 'mouse') return;
+            tx = e.clientX / window.innerWidth - .5;
+            ty = e.clientY / window.innerHeight - .5;
+            if (box) { sTx = e.clientX - box.l; sTy = e.clientY - box.t; }
+            kick();
+        }, { passive: true });
+        world.addEventListener('pointerleave', function () { tx = 0; ty = 0; sTx = 215; sTy = 80; kick(); });
+    }
+
+    // ---------- Show / hide password ----------
+    var eye = document.getElementById('mvEye');
+    if (eye) {
+        eye.addEventListener('click', function () {
+            var pw = document.getElementById('Password');
+            var show = pw.type === 'password';
+            pw.type = show ? 'text' : 'password';
+            eye.setAttribute('aria-pressed', show);
+            eye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            eye.classList.toggle('is-on', show);
+        });
+    }
+
+    // ---------- Toasts ----------
+    var toasts = document.getElementById('mvToasts');
+    var ICONS = {
+        success: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
+        error:   '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+    };
+    function toast(type, title, message, ms) {
+        if (!toasts) return;
+        ms = ms || 4500;
+        while (toasts.children.length >= 3) toasts.removeChild(toasts.firstChild);
+
+        var t = document.createElement('div');
+        t.className = 'mv-toast mv-toast-' + type;
+        t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        t.style.setProperty('--dur', ms + 'ms');
+        t.innerHTML = '<span class="mv-toast-ico">' + ICONS[type] + '</span>' +
+                      '<div class="mv-toast-text"><strong></strong><span></span></div>' +
+                      '<button type="button" class="mv-toast-x" aria-label="Dismiss">&times;</button>' +
+                      '<i class="mv-toast-bar"></i>';
+        t.querySelector('strong').textContent = title;
+        t.querySelector('.mv-toast-text span').textContent = message;
+
+        function close() {
+            if (t.classList.contains('is-leaving')) return;
+            t.classList.add('is-leaving');
+            setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 320);
+        }
+        t.querySelector('.mv-toast-x').addEventListener('click', close);
+        toasts.appendChild(t);
+        setTimeout(close, ms);
+    }
+
+    // ---------- Sign in without reloading the page ----------
+    var form = document.getElementById('mvLoginForm');
+    var btn = document.getElementById('mvSubmit');
+    var cardEl = document.getElementById('mvCard');
+
+    function setLoading(on) {
+        if (!btn) return;
+        btn.classList.toggle('is-loading', on);
+        btn.disabled = on;
+    }
+    function shake() {
+        if (!cardEl) return;
+        cardEl.classList.remove('mv-shake');
+        void cardEl.offsetWidth;            // restart the animation
+        cardEl.classList.add('mv-shake');
+    }
+    function fail(message, focusEl) {
+        setLoading(false);
+        shake();
+        toast('error', 'Sign-in failed', message);
+        if (focusEl) focusEl.focus();
+    }
+
+    if (form && btn) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var email = form.querySelector('[name="Email"]');
+            var pw = form.querySelector('[name="Password"]');
+
+            if (!email.value.trim() || !pw.value) {
+                shake();
+                toast('error', 'Missing details', 'Enter your email and password.');
+                (!email.value.trim() ? email : pw).focus();
+                return;
+            }
+
+            setLoading(true);
+            var loginPath = location.pathname.toLowerCase();
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function (res) {
+                var type = res.headers.get('content-type') || '';
+
+                // JSON endpoint (if the action ever returns JSON)
+                if (type.indexOf('json') !== -1) {
+                    return res.json().then(function (d) {
+                        if (d && d.success !== false && !d.error) return succeed(d.redirectUrl || d.returnUrl || '/');
+                        fail((d && (d.message || d.error)) || 'Invalid email or password.', pw);
+                    });
+                }
+
+                // Normal MVC flow: success = redirected away from the login page
+                var finalPath = new URL(res.url, location.href).pathname.toLowerCase();
+                if (res.redirected && finalPath !== loginPath) return succeed(res.url);
+
+                if (!res.ok && !res.redirected) {
+                    return fail('Something went wrong. Please try again.', null);
+                }
+
+                // Login page came back: read the server's validation message
+                return res.text().then(function (html) {
+                    var doc = new DOMParser().parseFromString(html, 'text/html');
+                    var nodes = doc.querySelectorAll('.validation-summary-errors li, .field-validation-error');
+                    var msgs = [];
+                    nodes.forEach(function (n) { var t = n.textContent.trim(); if (t && msgs.indexOf(t) === -1) msgs.push(t); });
+                    pw.value = '';
+                    fail(msgs.length ? msgs.join(' ') : 'Invalid email or password.', pw);
+                });
+            }).catch(function () {
+                fail('Cannot reach the server. Check your connection and try again.', null);
+            });
+        });
+
+        function succeed(url) {
+            toast('success', 'Signed in', 'Welcome back. Opening your workspace…', 2500);
+            btn.classList.add('is-loading');   // keep the spinner until we navigate
+            setTimeout(function () { window.location.href = url; }, 900);
+        }
+
+        window.addEventListener('pageshow', function (ev) { if (ev.persisted) setLoading(false); });
+    }
+})();
+</script>
